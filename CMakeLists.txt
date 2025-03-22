@@ -23,6 +23,10 @@ set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(CXX_DISABLE_WERROR True)
 set(CMAKE_VERBOSE_MAKEFILE True)
 
+# todo xiao
+set(CMAKE_C_COMPILER_LAUNCHER ccache CACHE INTERNAL "C cache")
+set(CMAKE_CXX_COMPILER_LAUNCHER ccache CACHE INTERNAL "C++ cache")
+
 # ----------------------------------------------------
 # --- OPTIONS  ---------------------------------------
 # Need to be set before including base.cmake
@@ -86,6 +90,40 @@ include("${JRL_CMAKE_MODULES}/base.cmake")
 
 compute_project_args(PROJECT_ARGS LANGUAGES CXX)
 project(${PROJECT_NAME} ${PROJECT_ARGS})
+
+# todo xiao
+# *********************************************************************************
+set(PROJECT_BUILD_DIR "/home/ubuntu/workspace/chaquopy/server/pypi/packages/pinocchio/build/3.4.0/cp39-cp39-android_28_arm64_v8a")
+# eigen3
+set(Eigen3_DIR "/usr/share/eigen3/cmake")
+# set(eigenpy_DIR "/home/ubuntu/.pyenv/versions/3.9.20/lib/python3.9/site-packages/cmeel.prefix/lib/cmake/eigenpy")
+set(eigenpy_DIR "${PROJECT_BUILD_DIR}/requirements/eigenpy/lib/cmake/eigenpy")
+
+# console_bridge
+set(console_bridge_DIR "${PROJECT_BUILD_DIR}/requirements/console_bridge/lib/console_bridge/cmake")
+# urdfdom_headers
+set(urdfdom_headers_DIR "${PROJECT_BUILD_DIR}/requirements/urdfdom_headers/lib/urdfdom_headers/cmake")
+# urdfdom
+set(urdfdom_DIR "${PROJECT_BUILD_DIR}/requirements/urdfdom/lib/urdfdom/cmake")
+
+# boost
+set(BOOST_ROOT "/home/ubuntu/workspace/pkg/boost_1_85_0/arm64-v8a")
+set(BOOST_LIBRARYDIR "${BOOST_ROOT}/lib")
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_DIR "${BOOST_LIBRARYDIR}/cmake/Boost-1.85.0")
+set(boost_headers_DIR "${BOOST_LIBRARYDIR}/cmake/boost_headers-1.85.0")
+set(boost_filesystem_DIR "${BOOST_LIBRARYDIR}/cmake/boost_filesystem-1.85.0")
+set(boost_atomic_DIR "${BOOST_LIBRARYDIR}/cmake/boost_atomic-1.85.0")
+set(boost_system_DIR "${BOOST_LIBRARYDIR}/cmake/boost_system-1.85.0")
+set(boost_serialization_DIR "${BOOST_LIBRARYDIR}/cmake/boost_serialization-1.85.0")
+set(boost_python_DIR "${BOOST_LIBRARYDIR}/cmake/boost_python-1.85.0")
+set(boost_container_DIR "${BOOST_LIBRARYDIR}/cmake/boost_container-1.85.0")
+set(boost_graph_DIR "${BOOST_LIBRARYDIR}/cmake/boost_graph-1.85.0")
+set(boost_unit_test_framework_DIR "${BOOST_LIBRARYDIR}/cmake/boost_unit_test_framework-1.85.0")
+set(Boost_COMPILER "-clang")
+# python executable
+set(PYTHON_EXECUTABLE "/home/ubuntu/workspace/chaquopy/server/pypi/packages/pinocchio/build/3.4.0/cp39-cp39-android_28_arm64_v8a/env/bin/python3.9")
+# *********************************************************************************
 
 include("${JRL_CMAKE_MODULES}/python.cmake")
 include("${JRL_CMAKE_MODULES}/boost.cmake")
@@ -273,7 +311,9 @@ if(BUILD_WITH_EXTRA_SUPPORT)
   message(STATUS "Found Qhull.")
 endif()
 
-set(BOOST_REQUIRED_COMPONENTS filesystem serialization system)
+# todo xiao
+# set(BOOST_REQUIRED_COMPONENTS filesystem serialization system)
+set(BOOST_REQUIRED_COMPONENTS filesystem serialization system unit_test_framework)
 
 set_boost_default_options()
 export_boost_default_options()
@@ -298,7 +338,10 @@ if(BUILD_PYTHON_INTERFACE)
       "The Python bindings of Pinocchio will be compiled along the main library. If you want to disable this feature, please set the option BUILD_PYTHON_INTERFACE to OFF."
   )
 
-  set(PYTHON_COMPONENTS Interpreter Development NumPy)
+  # todo xiao
+  # set(PYTHON_COMPONENTS Interpreter Development NumPy)
+  set(PYTHON_COMPONENTS Development.Module)
+
   findpython(REQUIRED)
   add_project_dependency(eigenpy 2.7.10 REQUIRED)
 
@@ -453,7 +496,8 @@ add_subdirectory(bindings)
 add_subdirectory(utils)
 
 # --- UNIT TESTS ---------------------------------------------------------------
-add_subdirectory(unittest)
+# todo xiao
+# add_subdirectory(unittest)
 
 # --- CHECK EXAMPLES -----------------------------------------------------------
 add_subdirectory(examples)

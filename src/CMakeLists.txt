@@ -115,9 +115,10 @@ function(PINOCCHIO_TARGET target_name)
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 
-  if(BUILD_WITH_COMMIT_VERSION)
-    tag_library_version(${LIB_NAME})
-  endif()
+  # todo xiao
+  # if(BUILD_WITH_COMMIT_VERSION)
+  #   tag_library_version(${LIB_NAME})
+  # endif()
 
   install(
     TARGETS ${LIB_NAME}
@@ -347,7 +348,10 @@ if(BUILD_WITH_PYTHON_PARSER_SUPPORT)
             ${${PROJECT_NAME}_PYTHON_PARSER_PUBLIC_HEADERS})
   pinocchio_config(python_parser ${PYTHON_PARSER_LIB_NAME})
 
-  target_link_libraries(${PYTHON_PARSER_LIB_NAME} PUBLIC ${PROJECT_NAME}_default Python3::Python)
+  # todo xiao
+  # target_link_libraries(${PYTHON_PARSER_LIB_NAME} PUBLIC ${PROJECT_NAME}_default Python3::Python)
+  target_link_libraries(${PYTHON_PARSER_LIB_NAME} PUBLIC ${PROJECT_NAME}_default ${PYTHON_LIBRARIES})
+
   target_link_boost_python(${PYTHON_PARSER_LIB_NAME} PUBLIC)
 endif()
 

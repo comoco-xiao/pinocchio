@@ -1,8 +1,9 @@
 import os
 import subprocess
 import sys
+import shutil
 from pathlib import Path
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 
 PROJECT_DIR = Path(__file__).parent
@@ -41,49 +42,64 @@ class CMakeBuildExt(build_ext):
             sys.stderr.write(f"Error: Missing required tools: {', '.join(missing)}\n")
             sys.exit(1)
 
+    def copy_data(self, install_dir): 
+        # python
+        python_path = os.path.join(self.build_lib, "pinocchio")
+        source_python_path = os.path.join(install_dir, "pinocchio")
+        shutil.copytree(source_python_path, python_path)
+        
+        # include
+        include_path = os.path.join(self.build_lib, "pinocchio", "include")
+        source_include_path = os.path.join(install_dir, "include")
+
+        if os.path.exists(include_path):
+            shutil.rmtree(include_path)
+        shutil.copytree(source_include_path, include_path)
+        
+        # lib
+        lib_path = os.path.join(self.build_lib, "pinocchio", "lib")
+        source_lib_path = os.path.join(install_dir, "lib")
+        if os.path.exists(lib_path):
+            shutil.rmtree(lib_path)
+        shutil.copytree(source_lib_path, lib_path)
+        
+        # share
+        share_path = os.path.join(self.build_lib, "pinocchio", "share")
+        source_share_path = os.path.join(install_dir, "share")
+        if os.path.exists(share_path):
+            shutil.rmtree(share_path)
+        shutil.copytree(source_share_path, share_path)
+        
     def _configure_and_build(self):
         """执行 CMake 构建"""
-        build_dir = Path(self.build_temp) / "cmake_build"
-        install_dir = Path(self.build_lib).absolute()
+        build_dir = os.path.join(PROJECT_DIR, "cmake_build")
+        install_dir = os.path.join(PROJECT_DIR, "pinocchio_install")
 
         # 创建构建目录
-        build_dir.mkdir(parents=True, exist_ok=True)
+        os.makedirs(build_dir, exist_ok=True)
+        os.makedirs(install_dir, exist_ok=True)
 
-        # Homebrew 安装的 Boost 路径
-        boost_root = "/home/ubuntu/workspace/pkg/boost_1_87_0"
-    
         # CMake 配置参数
         cmake_args = [
             f"-DCMAKE_INSTALL_PREFIX={install_dir}",
             f"-DCMAKE_BUILD_TYPE={self.build_type}",
-            "-DBUILD_PYTHON_INTERFACE=ON",
-            "-DBUILD_TESTING=OFF",
-            "-DBUILD_WITH_COLLISION_SUPPORT=ON",
-            f"-DPYTHON_EXECUTABLE={sys.executable}",
-            
-            # 显式指定 Boost 路径
-            f"-DBOOST_ROOT={boost_root}",
-            f"-DBoost_NO_SYSTEM_PATHS=ON",
-            
-            # 强制使用动态链接库
-            "-DBoost_USE_STATIC_LIBS=OFF",
-            "-DBoost_USE_STATIC_RUNTIME=OFF"
         ]
 
         # 生成构建系统
         subprocess.check_call(
             ["cmake", str(PROJECT_DIR)] + cmake_args,
-            cwd=str(build_dir)
+            cwd=str(build_dir), env=os.environ.copy()
         )
 
         # 编译并安装
-        build_args = ["--build", ".", "--target", "install"]
-        if self.build_type == "Release":
-            build_args += ["--config", "Release", "-j2"]
+        build_args = ["--config", "Release", "-j2"]
         subprocess.check_call(
-            ["cmake"] + build_args,
-            cwd=str(build_dir)
+            ["cmake", "--build", ".", "--target", "install"] + build_args,
+            cwd=build_dir,
         )
+        
+        # copy data
+        self.copy_data(install_dir)
 
 setup(
     name="pinocchio",
@@ -91,10 +107,10 @@ setup(
     description="Efficient Rigid Body Dynamics Library",
     author="Pinocchio Contributors",
     license="BSD-2-Clause",
-    packages=["pinocchio"],
+    packages=find_packages(),
     python_requires=">=3.6",
     install_requires=["numpy"],
-    ext_modules=[Extension("pinocchio_dummy", [])],  # 触发扩展构建
+    ext_modules=[Extension("pinocchio", [])],
     cmdclass={"build_ext": CMakeBuildExt},
     zip_safe=False,
 )
